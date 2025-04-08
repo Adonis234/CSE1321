@@ -9,7 +9,7 @@ clock = pygame.time.Clock()
 
 # Load images
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
-arrow = pygame.image.load("Arrow for Game.png").convert_alpha()
+arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
 
 # Position first
 boppiRect = pygame.Rect(0, 0, 45, 68)
@@ -252,8 +252,8 @@ while running:
 
     # Show warnings if needed
     if show_warning:
-        screen.blit(waterfallWarningText, (400, 350))
+        screen.blit(waterfallWarningText, (450, 350))
     if show_mist_warning:
-        screen.blit(mistWarningText, (400, 400))
+        screen.blit(mistWarningText, (450, 400))
 
     pygame.display.flip()
