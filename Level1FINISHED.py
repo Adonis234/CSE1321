@@ -8,7 +8,7 @@ clock = pygame.time.Clock()
 
 # Load images
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
-arrow = pygame.image.load("Arrow for Game.png").convert_alpha()
+arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
 
 # Setup initial position
 boppiRect = pygame.Rect(0, 0, 45, 68)
