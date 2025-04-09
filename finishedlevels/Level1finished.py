@@ -194,6 +194,14 @@ while running:
             pygame.Rect(600, 45, 10, 10),
             pygame.Rect(855, 495, 10, 10),
         ]
+        flower_locations = [
+            (95, 315),
+            (45, 615),
+            (135, 35),
+            (1030, 75),
+            (590, 35),
+            (845, 485)
+        ]
         flowers = 6
 
     # Draw everything
