@@ -8,14 +8,16 @@ clock = pygame.time.Clock()
 
 # Load images
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
-arrow = pygame.image.load("Arrow for Game.png").convert_alpha()
+arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
+flower_image = pygame.image.load("flowerPickUp.png").convert_alpha()
+
 
 # Setup initial position
 boppiRect = pygame.Rect(0, 0, 45, 68)
 
 # Background
 level1Background = pygame.Surface((1280, 720))
-level1Background.fill((204, 255, 204))
+level1Background = pygame.image.load("backgroundLevel1.png")
 
 # Platforms
 platRects = [
@@ -36,10 +38,6 @@ platRects = [
     pygame.Rect(38, 650, 42, 10),
 ]
 
-#Exit Arrow
-arrowRect = pygame.Rect(1222.5, 315, 30, 15)
-
-# Flowers
 flowerRect_list = [
     pygame.Rect(105, 325, 10, 10),
     pygame.Rect(55, 625, 10, 10),
@@ -47,7 +45,23 @@ flowerRect_list = [
     pygame.Rect(1040, 85, 10, 10),
     pygame.Rect(600, 45, 10, 10),
     pygame.Rect(855, 495, 10, 10),
+    ]
+
+#Exit Arrow
+arrowRect = pygame.Rect(1222.5, 315, 30, 15)
+
+# Flowers
+flower_locations = [
+    (105, 325),
+    (55, 625),
+    (145, 45),
+    (1040, 85),
+    (600, 45),
+    (855, 495)
 ]
+
+for location in flower_locations:
+    flower_rects = [pygame.Rect(location[0], location[1], 10, 10)]
 
 # Ground
 ground = pygame.Rect(0, 720, 1280, 10)
@@ -113,8 +127,8 @@ while running:
         boppiRect.right = 1280
 
     # Prevent going off-screen vertically
-    if boppiRect.top < 0:
-        boppiRect.top = 0
+    if boppiRect.top < -80:
+        boppiRect.top = -80
     if boppiRect.bottom > ground.top:
         boppiRect.bottom = ground.top
         velocity_y = 0
@@ -151,6 +165,7 @@ while running:
     for flower in flowerRect_list:
         if boppiRect.colliderect(flower) == True:
             flowers = flowers - 1
+            del flower_locations[num2]
             del flowerRect_list[num2]
             pygame.display.flip()
         num2 = num2 + 1
@@ -188,8 +203,8 @@ while running:
         pygame.draw.rect(screen, (0, 51, 0), plat)
 
     # Draw flowers
-    for flower in flowerRect_list:
-        pygame.draw.rect(screen, (255, 102, 178), flower)
+    for location in flower_locations:
+        screen.blit(flower_image, location)
 
     screen.blit(arrow, (1222.5, 315))
 
