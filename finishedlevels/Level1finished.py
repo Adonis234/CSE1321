@@ -10,6 +10,7 @@ clock = pygame.time.Clock()
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
 arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
 flower_image = pygame.image.load("flowerPickUp.png").convert_alpha()
+flower_image = pygame.transform.scale(flower_image, (25, 25))
 
 
 # Setup initial position
@@ -52,12 +53,12 @@ arrowRect = pygame.Rect(1222.5, 315, 30, 15)
 
 # Flowers
 flower_locations = [
-    (105, 325),
-    (55, 625),
-    (145, 45),
-    (1040, 85),
-    (600, 45),
-    (855, 495)
+    (95, 315),
+    (45, 615),
+    (135, 35),
+    (1030, 75),
+    (590, 35),
+    (845, 485)
 ]
 
 for location in flower_locations:
