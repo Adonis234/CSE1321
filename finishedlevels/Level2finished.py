@@ -8,7 +8,8 @@ clock = pygame.time.Clock()
 
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
 arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
-flower_img = pygame.image.load("flowerPickUp.png").convert_alpha()
+flower_image = pygame.image.load("flowerPickUp.png").convert_alpha()
+flower_image = pygame.transform.scale(flower_image, (25, 25))
 
 boppiRect = pygame.Rect(0, 0, 45, 68)
 
@@ -60,12 +61,12 @@ arrowRect = pygame.Rect(1220, 315, 30, 15)
 
 # Flowers
 flowerRect_list = [
-    pygame.Rect(190, 35, 10, 10),  # Left side
-    pygame.Rect(500, 35, 10, 10),  # Waterfall
-    pygame.Rect(1145, 65, 10, 10),  # Right side
-    pygame.Rect(635, 540, 10, 10),  # Waterfall
-    pygame.Rect(125, 475, 10, 10),  # Left side
-    pygame.Rect(1195, 610, 10, 10),  # Right side
+    pygame.Rect(181, 35, 10, 10),  # Left side
+    pygame.Rect(491, 35, 10, 10),  # Waterfall
+    pygame.Rect(1136, 65, 10, 10),  # Right side
+    pygame.Rect(626, 540, 10, 10),  # Waterfall
+    pygame.Rect(116, 475, 10, 10),  # Left side
+    pygame.Rect(1186, 610, 10, 10),  # Right side
 ]
 
 # Ground
@@ -86,8 +87,8 @@ on_plat = False
 SPEED = 8
 JUMP_FORCE = -15
 GRAVITY = 1
-WATERFALL_SPEED = 1  # How fast waterfall 
-MIST_FORCE = -5  
+WATERFALL_SPEED = 1  # How fast waterfall
+MIST_FORCE = -5
 
 # starting point
 boppiRect.midbottom = left_platRects[0].midtop
@@ -136,7 +137,7 @@ while running:
         if 400 <= flower.x <= 880:
             for plat in waterfall_platRects:
                 if abs(flower.x - plat.centerx) < 60:  # Rough association
-                    flower.y = plat.y - 15  # Keep above platform
+                    flower.y = plat.y - 35  # Keep above platform
                     break
 
     # Horizontal movement
@@ -174,9 +175,19 @@ while running:
     # Check if player falls below screen (waterfall bottom)
     if boppiRect.top > 720:
         lives -= 1
-        if lives <= 0:
-            pygame.quit()
-            sys.exit()
+        if lives <= 0: #if player dies
+            flowerRect_list = [
+                pygame.Rect(181, 35, 10, 10),
+                pygame.Rect(491, 35, 10, 10),
+                pygame.Rect(1136, 65, 10, 10),
+                pygame.Rect(626, 540, 10, 10),
+                pygame.Rect(116, 475, 10, 10),
+                pygame.Rect(1186, 610, 10, 10),
+            ]
+            GameOverFlag = True
+            flowers = 6
+            lives = 6
+
         # Reset position to starting platform
         boppiRect.midbottom = left_platRects[0].midtop
         # Reset waterfall platforms to original positions
@@ -230,7 +241,7 @@ while running:
 
     #  flowers
     for flower in flowerRect_list:
-        screen.blit(flower_img, flower.topleft)
+        screen.blit(flower_image, flower.topleft)
 
     screen.blit(arrow, arrowRect.topleft)
 
