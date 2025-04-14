@@ -1,6 +1,7 @@
 import pygame, sys
 from pygame.locals import *
 pygame.init()
+pygame.mixer.init()
 
 # Setup screen
 screen = pygame.display.set_mode((1280, 720))
@@ -12,11 +13,18 @@ arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
 flower_image = pygame.image.load("flowerPickUp.png").convert_alpha()
 flower_image = pygame.transform.scale(flower_image, (25, 25))
 
+#Load sounds and music
+jump = pygame.mixer.Sound('Jump.mp3')
+flower_sound = pygame.mixer.Sound('pick up.mp3')
+flower_sound.set_volume(0.5)
+jump.set_volume(0.5)
+pygame.mixer.music.load('backgound.mp3')
+pygame.mixer.music.play(-1)
+
 # Setup initial position
 boppiRect = pygame.Rect(0, 0, 45, 68)
 
 # Background
-level1Background = pygame.Surface((1280, 720))
 level1Background = pygame.image.load("backgroundLevel1.png")
 
 # Platforms
@@ -70,7 +78,7 @@ flowers = 6
 showMessage = False
 messageTimer = 0
 
-cannotContinueText = font.render("Cannot continue. Collect all of the flowers.", False, (0,0,0))
+cannotContinueText = font.render("Cannot continue. Collect all of the flowers!", True, (255, 255, 255))
 
 # Movement vars
 velocity_x = 0
@@ -84,8 +92,6 @@ GRAVITY = 1
 boppiRect.y = platRects[0].top - boppiRect.height
 
 running = True
-GameOverFlag = False
-level2Flag = False
 
 while running:
     num2 = 0
@@ -105,6 +111,7 @@ while running:
     if (keys[K_SPACE] or keys[K_UP]) and on_plat:
         velocity_y = JUMP_FORCE
         on_plat = False
+        jump.play()
 
     # Apply gravity
     velocity_y += GRAVITY
@@ -161,6 +168,7 @@ while running:
     for flower in flowerRect_list[:]:
         if boppiRect.colliderect(flower):
             flowers -= 1
+            flower_sound.play()
             index = flowerRect_list.index(flower)
             del flower_locations[index]
             flowerRect_list.remove(flower)
@@ -220,24 +228,24 @@ while running:
     screen.blit(boppi, boppiRect.topleft)
 
    # Draw UI Panel (bottom right)
-    hud_width = 200
+    hud_width = 150
     hud_height = 70
     hud_x = screen.get_width() - hud_width - 20
     hud_y = screen.get_height() - hud_height - 20
-    pygame.draw.rect(screen, (255, 255, 255), (hud_x, hud_y, hud_width, hud_height), border_radius=10)
+    pygame.draw.rect(screen, (255,255,255), (hud_x, hud_y, hud_width, hud_height), border_radius=10)
     pygame.draw.rect(screen, (0, 0, 0), (hud_x, hud_y, hud_width, hud_height), 2, border_radius=10)
 
    # Fonts
     title_font = pygame.font.Font(None, 34)
-    value_font = pygame.font.Font(None, 30)
+    value_font = pygame.font.Font(None, 34)
 
    # Render Lives text
-    lives_text = title_font.render(f"Lives:", True, (255, 0, 0))
-    lives_value = value_font.render(str(lives), True, (255, 0, 0))
+    lives_text = title_font.render(f"Lives:", True, (255,102,255))
+    lives_value = value_font.render(str(lives), True, (255,102,255))
 
    # Render Flowers text
-    flowers_text = title_font.render(f"Flowers:", True, (0, 153, 0))
-    flowers_value = value_font.render(str(flowers), True, (0, 153, 0))
+    flowers_text = title_font.render(f"Flowers:", True, (255,102,255))
+    flowers_value = value_font.render(str(flowers), True, (255,102,255))
 
    # Blit Lives
     screen.blit(lives_text, (hud_x + 10, hud_y + 10))
@@ -249,6 +257,6 @@ while running:
 
     # Show warning message
     if showMessage:
-        screen.blit(cannotContinueText, (650, 680))
+        screen.blit(cannotContinueText, (350, 350))
 
     pygame.display.flip()
