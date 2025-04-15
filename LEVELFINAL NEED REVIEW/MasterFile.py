@@ -16,10 +16,12 @@ flower_image = pygame.transform.scale(flower_image, (25, 25))
 # Load sounds and music
 jump = pygame.mixer.Sound('Jump.mp3')
 flower_sound = pygame.mixer.Sound('pick up.mp3')
-death=pygame.mixer.Sound("death.mp3")
+death = pygame.mixer.Sound("death.mp3")
+waterfall_sound = pygame.mixer.Sound('waterfallsound.wav')
 flower_sound.set_volume(0.5)
 jump.set_volume(0.5)
 death.set_volume(0.9)
+waterfall_sound.set_volume(0.3)
 
 introFlag = False
 level1Flag = True
@@ -278,13 +280,13 @@ while running:
    while level2Flag:
       pygame.mixer.music.load('level3sound.mp3')
       pygame.mixer.music.play(-1)
-      boppiRect = pygame.Rect(0, 0, 45, 68)
-      level2Background = pygame.Surface((1280, 720))
-      level2Background.fill((204, 255, 204))
-      # waterfall
-      pygame.draw.rect(level2Background, (100, 150, 255), (400, 0, 480, 720))
+      waterfall_sound.play(-1)
 
-      # Waterfall platforms (in center)
+      boppiRect = pygame.Rect(0, 0, 45, 68)
+      level2Background = pygame.image.load("BackgroundLevel2.png").convert_alpha()
+      level2Background = pygame.transform.scale(level2Background, (1280, 720))
+
+     # Waterfall platforms (in center)
       waterfall_platRects = [
          pygame.Rect(450, 60, 100, 10),
          pygame.Rect(590, 180, 100, 10),
@@ -341,7 +343,6 @@ while running:
       # Fonts and text
       font = pygame.font.SysFont("Arial", 36, bold=True)
       flowers = 6
-
       mistWarningText = font.render("Cannot continue. Collect all of the flowers!", True, (255, 255, 255))
 
       # Movement vars
@@ -440,6 +441,7 @@ while running:
             if lives <= 0:  # if player dies
                level2Flag = False
                pygame.mixer.music.stop()
+               waterfall_sound.stop()
                deadFlag = True
                flowerRect_list = [
                   pygame.Rect(181, 35, 10, 10),
@@ -832,7 +834,7 @@ while running:
       screen.fill((0, 0, 0))
       font = pygame.font.SysFont("Arial", 36, bold=True)
       deadtext = font.render("GAME OVER", True, (255, 255, 255))
-      buttontext = font.render("Press SPACE to Retry", True, (255, 255, 255))
+      buttontext = font.render("Press R to Retry", True, (255, 255, 255))
       screen.blit(deadtext, (350, 350))
       screen.blit(buttontext, (350, 400))
       pygame.display.flip()
@@ -842,6 +844,6 @@ while running:
                pygame.quit()
                sys.exit()
          keys = pygame.key.get_pressed()
-         if keys[K_SPACE]:
+         if keys[K_r]:
             level1Flag = True
             deadFlag = False
