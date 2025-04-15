@@ -747,7 +747,7 @@ while running:
 
          # Draw platforms
          for plat in platRects:
-            pygame.draw.rect(screen, (0, 100, 0), plat)
+            pygame.draw.rect(screen, (55,32,66), plat)
 
          # Draw flowers
          for location in flower_locations:
