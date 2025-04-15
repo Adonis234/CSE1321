@@ -546,17 +546,285 @@ while running:
          pygame.display.flip()
 
    while level3Flag:
-      running = True
-      screen.fill((0, 0, 0))
+      pygame.mixer.music.load('level2sound.mp3')
+      pygame.mixer.music.play(-1)
+
+      # Sets up rock class
+      class Rock:
+         def __init__(self):
+            self.speed = 5
+            self.sprite = pygame.image.load("rock.png").convert_alpha()
+            self.rect = self.sprite.get_rect()
+            self.rect.topleft = (random.randint(0, 1280 - self.rect.width), 0)
+            # self.spawnSound = INSERT PATH TO ROCK SOUND
+
+         def fall(self):
+            self.rect = self.rect.move(0, self.speed)
+
+         def draw(self, target):
+            target.blit(self.sprite, self.rect)
+
+      # Setup initial position
+      boppiRect = pygame.Rect(0, 0, 45, 68)
+
+      # Background
+      level3Background = pygame.image.load("backgroundLevel3.png").convert()
+
+      # Platforms
+      platRects = [
+         pygame.Rect(-2, 150, 102, 10),
+         pygame.Rect(100, 400, 102, 10),
+         pygame.Rect(620, 90, 102, 10),
+         pygame.Rect(300, 80, 102, 10),
+         pygame.Rect(150, 600, 102, 10),
+         pygame.Rect(250, 200, 102, 10),
+         pygame.Rect(457, 300, 102, 10),
+         pygame.Rect(800, 220, 102, 10),
+         pygame.Rect(990, 120, 40, 10),
+         pygame.Rect(840, 300, 102, 10),
+         pygame.Rect(670, 400, 102, 10),
+         pygame.Rect(410, 500, 102, 10),
+         pygame.Rect(648, 600, 102, 10),
+         pygame.Rect(978, 600, 102, 10),
+         pygame.Rect(1178, 350, 102, 10),
+         pygame.Rect(1208, 500, 72, 10),
+         pygame.Rect(70, 380, 30, 10),
+      ]
+
+      # Exit Arrow
+      arrowRect = pygame.Rect(1222.5, 315, 30, 15)
+
+      # Flowers
+      flowerRect_list = [
+         pygame.Rect(665, 60, 10, 10),
+         pygame.Rect(80, 360, 10, 10),
+         pygame.Rect(1005, 100, 10, 10),
+         pygame.Rect(870, 260, 10, 10),
+         pygame.Rect(195, 570, 10, 10),
+         pygame.Rect(1240, 370, 10, 10),]
+
+      flower_locations = [
+         (665, 60),
+         (80, 360),
+         (1005, 100),
+         (870, 260),
+         (195, 570),
+         (1240, 370)]
+
+      # Rocks
+      rockTimer = 0
+      rockList = []
+
+      # Ground
+      ground = pygame.Rect(0, 720, 1280, 10)
+
+      # Fonts and text
       font = pygame.font.SysFont("Arial", 36, bold=True)
-      text = font.render("INSERT LEVEL 3 HERE", True, (255, 255, 255))
-      screen.blit(text, (350, 350))
-      pygame.display.flip()
+      flowers = 6
+      cannotContinueText = font.render("Cannot continue. Collect all of the flowers!", True, (255, 255, 255))
+      showMessage = False
+      messageTimer = 0
+
+      # Movement vars
+      velocity_x = 0
+      velocity_y = 0
+      on_plat = False
+      SPEED = 8
+      JUMP_FORCE = -15
+      GRAVITY = 1
+
+      # Start boppi on first platform
+      boppiRect.y = platRects[0].top - boppiRect.height
+
       while running and level3Flag:
+         num2 = 0  # used for the flowers
+         rockTimer += 1
+         clock.tick(60)
          for event in pygame.event.get():
             if event.type == QUIT:
                pygame.quit()
                sys.exit()
+
+         # Input
+         keys = pygame.key.get_pressed()
+         velocity_x = 0
+         if keys[K_a] or keys[K_LEFT]:
+            velocity_x = -SPEED
+         if keys[K_d] or keys[K_RIGHT]:
+            velocity_x = SPEED
+         if (keys[K_SPACE] or keys[K_UP]) and on_plat:
+            velocity_y = JUMP_FORCE
+            jump.play()
+            on_plat = False
+
+         # Apply gravity
+         velocity_y += GRAVITY
+         if velocity_y > 20:
+            velocity_y = 20
+
+         # Horizontal movement
+         boppiRect.x += velocity_x
+         for plat in platRects:
+            if boppiRect.colliderect(plat):
+               if velocity_x > 0:
+                  boppiRect.right = plat.left
+               elif velocity_x < 0:
+                  boppiRect.left = plat.right
+
+            # keeping inside:
+            if boppiRect.left < 0:
+               boppiRect.left = 0
+         if boppiRect.right > 1280:
+            boppiRect.right = 1280
+
+         # Prevent going off-screen vertically
+         if boppiRect.top < -80:
+            boppiRect.top = -80
+         if boppiRect.bottom > ground.top:
+            boppiRect.bottom = ground.top
+            velocity_y = 0
+            on_plat = True
+
+         # Vertical movement
+         boppiRect.y += velocity_y
+         on_plat = False
+         for plat in platRects:
+            if boppiRect.colliderect(plat):
+               if velocity_y > 0:
+                  boppiRect.bottom = plat.top
+                  velocity_y = 0
+                  on_plat = True
+               elif velocity_y < 0:
+                  boppiRect.top = plat.bottom
+                  velocity_y = 0
+
+         # Ground collision
+         if boppiRect.bottom >= ground.top:
+            boppiRect.bottom = ground.top
+            velocity_y = 0
+            on_plat = True
+            lives -= 1
+            boppiRect = pygame.Rect(0, 0, 45, 68)
+            screen.blit(boppi, (0, 47))
+            pygame.display.flip()
+
+         # Top screen limit
+         if boppiRect.top < -50:
+            boppiRect.top = -50
+
+         # Check to see if flowers picked up
+         for flower in flowerRect_list:
+            if boppiRect.colliderect(flower):
+               flowers = flowers - 1
+               flower_sound.play()
+               del flowerRect_list[num2]
+               del flower_locations[num2]
+               pygame.display.flip()
+            num2 = num2 + 1
+
+         # if player tries to exit screen, check flowers
+         if boppiRect.colliderect(arrowRect):
+            if flowers == 0:
+               level3Flag = False
+               pygame.mixer.music.stop()
+               level4Flag = True
+            elif flowers != 0:
+               showMessage = True
+               messageTimer = pygame.time.get_ticks()
+
+         # Remove message after 2 seconds
+         if showMessage and pygame.time.get_ticks() - messageTimer > 2000:
+            showMessage = False
+
+         # If player dies
+         if lives == 0:
+            level3Flag = False
+            pygame.mixer.music.stop()
+            deadFlag = True
+
+         # Draw everything
+         screen.blit(level3Background, (0, 0))
+
+         # Draw platforms
+         for plat in platRects:
+            pygame.draw.rect(screen, (0, 100, 0), plat)
+
+         # Draw flowers
+         for location in flower_locations:
+            screen.blit(flower_image, location)
+
+         screen.blit(arrow, (1222.5, 315))
+
+         # Draw ground
+         pygame.draw.rect(screen, (0, 0, 0), ground)
+
+         # Draw Boppi
+         screen.blit(boppi, boppiRect.topleft)
+
+         # Draw UI Panel (bottom right)
+         hud_width = 150
+         hud_height = 70
+         hud_x = screen.get_width() - hud_width - 20
+         hud_y = screen.get_height() - hud_height - 20
+         pygame.draw.rect(screen, (255, 255, 255), (hud_x, hud_y, hud_width, hud_height), border_radius=10)
+         pygame.draw.rect(screen, (0, 0, 0), (hud_x, hud_y, hud_width, hud_height), 2, border_radius=10)
+
+         # Fonts
+         title_font = pygame.font.Font(None, 34)
+         value_font = pygame.font.Font(None, 34)
+
+         # Render Lives text
+         lives_text = title_font.render(f"Lives:", True, (255, 102, 255))
+         lives_value = value_font.render(str(lives), True, (255, 102, 255))
+
+         # Render Flowers text
+         flowers_text = title_font.render(f"Flowers:", True, (255, 102, 255))
+         flowers_value = value_font.render(str(flowers), True, (255, 102, 255))
+
+         # Blit Lives
+         screen.blit(lives_text, (hud_x + 10, hud_y + 10))
+         screen.blit(lives_value, (hud_x + 120, hud_y + 10))
+
+         # Blit Flowers
+         screen.blit(flowers_text, (hud_x + 10, hud_y + 35))
+         screen.blit(flowers_value, (hud_x + 120, hud_y + 35))
+
+         # Show warning message
+         if showMessage:
+            screen.blit(cannotContinueText, (350, 350))
+
+         # causing rocks to spawn
+         if rockTimer % 90 == 0:
+            newRock = Rock()
+            rockList.append(newRock)
+            # newRock.spawnSound.play()
+
+         for i in rockList:
+            Rock.draw(i, screen)
+            Rock.fall(i)
+            if i.rect.midbottom == 800 - i.rect.height:
+               rockList.remove(i)
+            if pygame.Rect.colliderect(i.rect, boppiRect):
+               lives -= 1
+               boppiRect = pygame.Rect(0, 0, 45, 68)
+               screen.blit(boppi, (0, 47))
+               rockList.remove(i)
+
+         pygame.display.flip()
+
+   while level4Flag:
+      running = True
+      screen.fill((0, 0, 0))
+      font = pygame.font.SysFont("Arial", 36, bold=True)
+      text = font.render("INSERT LEVEL 4 HERE", True, (255, 255, 255))
+      screen.blit(text, (350, 350))
+      pygame.display.flip()
+      while running and level4Flag:
+         for event in pygame.event.get():
+            if event.type == QUIT:
+               pygame.quit()
+               sys.exit()
+
    while deadFlag:
       running = True
       death.play()
