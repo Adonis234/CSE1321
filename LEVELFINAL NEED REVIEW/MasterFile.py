@@ -471,6 +471,7 @@ while running:
             if flowers == 0:
                level2Flag = False
                pygame.mixer.music.stop()
+               waterfall_sound.stop()
                level3Flag = True
             else:
                # Apply mist force (push player up)
