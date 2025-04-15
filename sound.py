@@ -3,6 +3,10 @@ import pygame
 pygame.init()
 pygame.mixer.init()
 
+def level4sound():
+    pygame.mixer.music.load('Level4Sound.mp3')
+    pygame.mixer.music.play(-1)
+
 #jumps sound
 def jumpsound():
     jump = pygame.mixer.Sound('Jump.mp3')
