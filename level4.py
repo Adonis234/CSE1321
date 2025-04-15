@@ -1,7 +1,7 @@
 import pygame
 import random
 from pygame.locals import *
-from sound import level1sound
+from sound import level4sound
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -96,7 +96,7 @@ def reset_game():
 
 # Initialize game state
 reset_game()
-#level1sound()
+level4sound()
 
 # Game loop
 running = True
