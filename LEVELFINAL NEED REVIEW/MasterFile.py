@@ -6,6 +6,7 @@ pygame.mixer.init()
 #setup screen
 screen = pygame.display.set_mode((1280,720))
 clock = pygame.time.Clock()
+pygame.display.set_caption("Boppi's Adventure")
 
 #load images
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
