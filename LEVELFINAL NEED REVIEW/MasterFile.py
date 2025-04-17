@@ -12,6 +12,8 @@ boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
 arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
 flower_image = pygame.image.load("flowerPickUp.png").convert_alpha()
 flower_image = pygame.transform.scale(flower_image, (25, 25))
+gameover_image = pygame.image.load("GameOver.png").convert_alpha()
+gameover_image = pygame.transform.scale(gameover_image, (500,500))
 
 # Load sounds and music
 jump = pygame.mixer.Sound('Jump.mp3')
@@ -832,12 +834,16 @@ while running:
       running = True
       death.play()
       lives = 6
-      screen.fill((0, 0, 0))
+      dead_background = pygame.Surface((1280,720))
+      dead_background.fill((0, 0, 0))
+      dead_background.set_alpha(200)
+      screen.blit(dead_background,(0,0))
       font = pygame.font.SysFont("Arial", 36, bold=True)
-      deadtext = font.render("GAME OVER", True, (255, 255, 255))
-      buttontext = font.render("Press R to Retry", True, (255, 255, 255))
-      screen.blit(deadtext, (350, 350))
-      screen.blit(buttontext, (350, 400))
+      screen.blit(gameover_image,(390,110))
+      gameover_text1 = font.render("Press R to Retry", True, (255, 255, 255))
+      gameover_text2 = font.render("Boppi didn't get his flower back.", True, (255,255,255))
+      screen.blit(gameover_text1, (520, 500))
+      screen.blit(gameover_text2, (420,550))
       pygame.display.flip()
       while running and deadFlag:
          for event in pygame.event.get():
