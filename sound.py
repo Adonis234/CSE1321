@@ -3,6 +3,11 @@ import pygame
 pygame.init()
 pygame.mixer.init()
 
+
+def endsound():
+    pygame.mixer.music.load('endsound.mp3')
+    pygame.mixer.music.play(-1)
+
 def level4sound():
     pygame.mixer.music.load('Level4Sound.mp3')
     pygame.mixer.music.play(-1)
@@ -19,7 +24,7 @@ def jumpsound():
 
 #background music
 def level2sound():
-    pygame.mixer.music.load('level2sound.mp3v.mp3')
+    pygame.mixer.music.load('level2sound.mp3')
     pygame.mixer.music.play(-1)
 
 def level3sound():
