@@ -1,5 +1,6 @@
 iimport pygame, sys, random
 from pygame.locals import *
+from sound import *
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -81,6 +82,7 @@ JUMP_FORCE = -15
 GRAVITY = 1
 on_plat = False
 
+level4sound()
 while running:
     dt = clock.tick(60)
     for event in pygame.event.get():
