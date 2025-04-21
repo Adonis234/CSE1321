@@ -1,212 +1,183 @@
-import pygame, sys
-import random
+iimport pygame, sys, random
 from pygame.locals import *
 
 pygame.init()
 clock = pygame.time.Clock()
 
-# Screen settings
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Level 4")
 
-# Load images
 boppi = pygame.image.load("BoppiFront2.png").convert_alpha()
 arrow = pygame.image.load("ArrowNextLevel.png").convert_alpha()
 level4background = pygame.image.load("backgroundLevel4.png").convert_alpha()
-level4background = pygame.transform.scale(level4background, (1280,720))
+level4background = pygame.transform.scale(level4background, (1280, 720))
+spike_image = pygame.image.load("spike.png").convert_alpha()
 
-#Load sounds and music
 jump = pygame.mixer.Sound('Jump.mp3')
 flower_sound = pygame.mixer.Sound('pick up.mp3')
 flower_sound.set_volume(0.5)
 jump.set_volume(0.5)
-#pygame.mixer.music.load('level4sound.mp3')
-#pygame.mixer.music.play(-1)
 
-# Font
 font = pygame.font.Font(None, 60)
-small_font = pygame.font.Font(None, 36)
 
-# Setup initial position
-boppiRect = pygame.Rect(0, 0, 45, 68)
-
-# Ground
 ground = pygame.Rect(0, 720, 1280, 10)
 
-# Platforms
 platRects = [
-    pygame.Rect(-2, 150, 102, 10),
-    pygame.Rect(198, 250, 102, 10),
-    pygame.Rect(58, 350, 102, 10),
-    pygame.Rect(198, 550, 102, 10),
-    pygame.Rect(98, 70, 102, 10),
-    pygame.Rect(348, 200, 102, 10),
-    pygame.Rect(538, 300, 102, 10),
-    pygame.Rect(800, 220, 102, 10),
-    pygame.Rect(990, 120, 102, 10),
-    pygame.Rect(698, 400, 102, 10),
-    pygame.Rect(443, 500, 102, 10),
-    pygame.Rect(648, 600, 102, 10),
-    pygame.Rect(978, 600, 102, 10),
-    pygame.Rect(1178, 350, 102, 10),
-    pygame.Rect(38, 650, 42, 10),
+    pygame.Rect(100, 100, 170, 10),
+    pygame.Rect(240, 440, 150, 10),
+    pygame.Rect(348, 200, 150, 10),
+    pygame.Rect(538, 300, 150, 10),
+    pygame.Rect(800, 220, 150, 10),
+    pygame.Rect(698, 400, 150, 10),
+    pygame.Rect(443, 500, 150, 10),
+    pygame.Rect(1010, 545, 400, 10),
+    pygame.Rect(900, 350, 150, 10),
+    pygame.Rect(0, 545, 230, 10),
 ]
 
-#Exit Arrow
-arrowRect = pygame.Rect(1222.5, 315, 30, 15)
+arrowRect = pygame.Rect(1222.5, 520, 30, 15)
 
-# Spike class
 class Spike:
-    def __init__(self, x, y):
-        self.width = 30
-        self.height = 15  # Smaller hitbox
-        self.x = x
-        self.y = y
-        self.rect = pygame.Rect(x + 5, y + 5, self.width - 10, self.height - 5)
+    def __init__(self, platform_rect, image):
+        self.image = image
+        self.platform = platform_rect
+        self.x = platform_rect.x
+        self.y = platform_rect.y - image.get_height()
+        self.speed = 2
+        self.direction = 1
+        self.rect = pygame.Rect(self.x, self.y, image.get_width(), image.get_height())
+
+    def move(self):
+        self.x += self.speed * self.direction
+        if self.x <= self.platform.left or self.x + self.rect.width >= self.platform.right:
+            self.direction *= -1
+        self.rect.topleft = (self.x, self.y)
 
     def draw(self, surface):
-        pygame.draw.polygon(surface, (0,0,0), [
-            (self.x, self.y + self.height),
-            (self.x + self.width, self.y + self.height),
-            (self.x + self.width // 2, self.y)
-        ])
+        surface.blit(self.image, self.rect.topleft)
 
-# Game loop
+def get_random_spawn():
+    platform = random.choice([platRects[0], platRects[9]])
+    return pygame.Rect(platform.x + 10, platform.y - 68, 45, 68)
+
+spikes = []
+for i, plat in enumerate(platRects):
+    if i in [0, 9]:  # No spikes on spawn platforms
+        continue
+    spikes.append(Spike(plat, spike_image))
+
+lives = 6
+invincible = False
+invincibility_timer = 0
+invincibility_duration = 2000  # in milliseconds
+
+boppiRect = get_random_spawn()
+
 running = True
+velocity_x = 0
+velocity_y = 0
+SPEED = 8
+JUMP_FORCE = -15
+GRAVITY = 1
+on_plat = False
+
 while running:
-    # Fonts and text
-    font = pygame.font.SysFont("Arial", 36, bold=True)
-    lives = 6
-    flowers = 6
-    showMessage = False
-    messageTimer = 0
-    cannotContinueText = font.render("Cannot continue. Collect all of the flowers!", True, (255, 255, 255))
+    dt = clock.tick(60)
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
 
-    # Movement vars
+    keys = pygame.key.get_pressed()
     velocity_x = 0
-    velocity_y = 0
-    on_plat = False
-    SPEED = 8
-    JUMP_FORCE = -15
-    GRAVITY = 1
-
-    # Start boppi on first platform
-    boppiRect.y = platRects[0].top - boppiRect.height
-
-    running = True
-
-    while running:
-        num2 = 0
-        clock.tick(60)
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-
-        # Input
-        keys = pygame.key.get_pressed()
-        velocity_x = 0
-        if keys[K_a] or keys[K_LEFT]:
-            velocity_x = -SPEED
-        if keys[K_d] or keys[K_RIGHT]:
-            velocity_x = SPEED
-        if (keys[K_SPACE] or keys[K_UP]) and on_plat:
-            velocity_y = JUMP_FORCE
-            on_plat = False
-            jump.play()
-
-        # Apply gravity
-        velocity_y += GRAVITY
-        if velocity_y > 20:
-            velocity_y = 20
-
-        # Horizontal movement
-        boppiRect.x += velocity_x
-        for plat in platRects:
-            if boppiRect.colliderect(plat):
-                if velocity_x > 0:
-                    boppiRect.right = plat.left
-                elif velocity_x < 0:
-                    boppiRect.left = plat.right
-
-        # Keep inside screen
-        if boppiRect.left < 0:
-            boppiRect.left = 0
-        if boppiRect.right > 1280:
-            boppiRect.right = 1280
-
-        # Prevent going off-screen vertically
-        if boppiRect.top < -80:
-            boppiRect.top = -80
-        if boppiRect.bottom > ground.top:
-            boppiRect.bottom = ground.top
-            velocity_y = 0
-            on_plat = True
-
-        # Vertical movement
-        boppiRect.y += velocity_y
+    if keys[K_a] or keys[K_LEFT]:
+        velocity_x = -SPEED
+    if keys[K_d] or keys[K_RIGHT]:
+        velocity_x = SPEED
+    if (keys[K_SPACE] or keys[K_UP]) and on_plat:
+        velocity_y = JUMP_FORCE
         on_plat = False
-        for plat in platRects:
-            if boppiRect.colliderect(plat):
-                if velocity_y > 0:
-                    boppiRect.bottom = plat.top
-                    velocity_y = 0
-                    on_plat = True
-                elif velocity_y < 0:
-                    boppiRect.top = plat.bottom
-                    velocity_y = 0
+        jump.play()
 
-        # Ground collision
-        if boppiRect.bottom >= ground.top:
-            boppiRect.bottom = ground.top
-            velocity_y = 0
-            on_plat = True
-            lives -= 1
-            boppiRect = pygame.Rect(0, 0, 45, 68)
-            screen.blit(boppi, (0, 47))
-            pygame.display.flip()
+    velocity_y += GRAVITY
+    if velocity_y > 20:
+        velocity_y = 20
 
-        # If player dies
-        if lives == 0:
-            GameOverFlag = True
-            sys.exit() #remove for full game
+    boppiRect.x += velocity_x
+    for plat in platRects:
+        if boppiRect.colliderect(plat):
+            if velocity_x > 0:
+                boppiRect.right = plat.left
+            elif velocity_x < 0:
+                boppiRect.left = plat.right
 
-        # Draw everything
-        screen.blit(level4background, (0, 0))
+    boppiRect.left = max(0, boppiRect.left)
+    boppiRect.right = min(1280, boppiRect.right)
 
-        # Draw platforms
-        for plat in platRects:
-            pygame.draw.rect(screen, (0, 51, 0), plat)
+    boppiRect.y += velocity_y
+    on_plat = False
+    for plat in platRects:
+        if boppiRect.colliderect(plat):
+            if velocity_y > 0:
+                boppiRect.bottom = plat.top
+                velocity_y = 0
+                on_plat = True
+            elif velocity_y < 0:
+                boppiRect.top = plat.bottom
+                velocity_y = 0
 
-        screen.blit(arrow, (1222.5, 315))
+    if boppiRect.bottom >= ground.top:
+        lives -= 1
+        boppiRect = get_random_spawn()
+        invincible = True
+        invincibility_timer = pygame.time.get_ticks()
 
-        # Draw ground
-        pygame.draw.rect(screen, (0, 0, 0), ground)
+    if not invincible:
+        for spike in spikes:
+            if boppiRect.colliderect(spike.rect):
+                lives -= 1
+                boppiRect = get_random_spawn()
+                invincible = True
+                invincibility_timer = pygame.time.get_ticks()
+                break
 
-        # Draw Boppi
+    if invincible and pygame.time.get_ticks() - invincibility_timer >= invincibility_duration:
+        invincible = False
+
+    if lives <= 0:
+        sys.exit()
+
+    for spike in spikes:
+        spike.move()
+
+    screen.blit(level4background, (0, 0))
+
+    for plat in platRects:
+        pygame.draw.rect(screen, (0, 51, 0), plat)
+
+    for spike in spikes:
+        spike.draw(screen)
+
+    screen.blit(arrow, (1222.5, 520))
+    pygame.draw.rect(screen, (0, 0, 0), ground)
+
+    # Flashing effect if invincible
+    if not invincible or (pygame.time.get_ticks() // 200) % 2 == 0:
         screen.blit(boppi, boppiRect.topleft)
 
-        # Draw UI Panel (bottom right)
-        hud_width = 150
-        hud_height = 40
-        hud_x = screen.get_width() - hud_width - 20
-        hud_y = screen.get_height() - hud_height - 20
-        pygame.draw.rect(screen, (255, 255, 255), (hud_x, hud_y, hud_width, hud_height), border_radius=10)
-        pygame.draw.rect(screen, (0, 0, 0), (hud_x, hud_y, hud_width, hud_height), 2, border_radius=10)
+    hud_width = 150
+    hud_height = 40
+    hud_x = screen.get_width() - hud_width - 20
+    hud_y = screen.get_height() - hud_height - 20
+    pygame.draw.rect(screen, (255, 255, 255), (hud_x, hud_y, hud_width, hud_height), border_radius=10)
+    pygame.draw.rect(screen, (0, 0, 0), (hud_x, hud_y, hud_width, hud_height), 2, border_radius=10)
+    title_font = pygame.font.Font(None, 34)
+    value_font = pygame.font.Font(None, 34)
+    lives_text = title_font.render(f"Lives:", True, (255, 102, 255))
+    lives_value = value_font.render(str(lives), True, (255, 102, 255))
+    screen.blit(lives_text, (hud_x + 10, hud_y + 10))
+    screen.blit(lives_value, (hud_x + 120, hud_y + 10))
 
-        # Fonts
-        title_font = pygame.font.Font(None, 34)
-        value_font = pygame.font.Font(None, 34)
+    pygame.display.flip()
 
-        # Render Lives text
-        lives_text = title_font.render(f"Lives:", True, (255, 102, 255))
-        lives_value = value_font.render(str(lives), True, (255, 102, 255))
-
-        # Blit Lives
-        screen.blit(lives_text, (hud_x + 10, hud_y + 10))
-        screen.blit(lives_value, (hud_x + 120, hud_y + 10))
-
-
-        pygame.display.flip()
-
-#lets wait until it is all done first
+pygame.quit()
