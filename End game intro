@@ -1,0 +1,158 @@
+import sys
+import pygame
+from pygame.locals import *
+
+pygame.init()
+clock = pygame.time.Clock()
+
+# Screen settings
+screen_width, screen_height = 1280, 720
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Boppi's Quest")
+
+# Colors
+white = (255, 255, 255)
+brown = (139, 69, 19)
+black = (0, 0, 0)
+
+# Fonts
+font = pygame.font.Font(None, 40)
+small_font = pygame.font.Font(None, 30)
+
+# Images
+character1_image = pygame.transform.scale(pygame.image.load("BoppiFront2.png").convert_alpha(), (50, 70))
+character2_image = pygame.transform.scale(pygame.image.load("batti.png").convert_alpha(), (50, 70))
+Flower = pygame.transform.scale(pygame.image.load("Flower.png").convert_alpha(), (500, 500))
+Win = pygame.transform.scale(pygame.image.load("YouWin.png").convert_alpha(), (500, 500))
+
+# Dialogue Box
+dialogue_box_rect = pygame.Rect((screen_width - 600) // 2, (screen_height - 150) // 2, 600, 150)
+
+# Dialogue
+dialogues = [
+    ("BATTI", "Ah, Boppi. You have traveled far to get here."),
+    ("BOPPI", "You know why I am here."),
+    ("BATTI", "Yes, I know. But your journey was in vain. Leave now."),
+    ("BOPPI", "You took her from me. I will not leave without her!"),
+    ("BATTI", "If that is the case, you are welcome to stay…"),
+    ("BATTI", "In my dungeon! Muahaha!"),
+    ("BOPPI", "Villain! Tell me where she is!"),
+    ("BATTI", "Somewhere safe. That’s all you need to know."),
+    ("BOPPI", "She isn’t yours to keep."),
+    ("BATTI", "And how do you know that?"),
+    ("BOPPI", "Such beauty doesn’t belong in this dungeon."),
+    ("BATTI", "My castle! A dungeon?!"),
+    ("BATTI", "…"),
+    ("BATTI", "… Perhaps so... That’s why I sent my soldiers to your home."),
+    ("BATTI", "I was so lonely, and this place is so lifeless…"),
+    ("BATTI", "…*sniffle*..."),
+    ("BATTI", "So I’ll NEVER GIVE IT BACK! I need it far more than you!"),
+    ("BOPPI", "I thought you might say so."),
+    ("BOPPI", "On my way here, I collected something along the way…"),
+    ("BOPPI", "If you give her back, you may use these to decorate and bring life to your castle"),
+    ("BOPPI", "Boppi pulls out all the flowers he collected on his journey."),
+    ("BATTI", "All these?"),
+    ("BATTI", "…"),
+    ("BATTI", "Alright, Boppi! I will give your flower back to you."),
+]
+
+story_lines = [
+    "Boppi has grown this flower from a seedling.",
+    "He has raised many flowers as a florist, but this one was special.",
+    "This flower was the most beautiful of all,",
+    "and Boppi dreamed of the day he could take it to the fair...",
+    "for the Miss Photosynthesis competition.",
+    "After saving his flower from Batti, his dreams were realized..."
+]
+
+credits = [
+    "Olivia Kennedy",
+    "Paris Bingham",
+    "Adonis Sharma",
+    "Jordan Maxima",
+    "All graphics created using pixilart.com and dinopixel.com",
+    "Some graphics made on pixelart.com using a color palette by VeryCraftyBoss"
+]
+
+# State control
+phase = "dialogue"
+dialogue_index = 0
+story_index = 0
+show_win_screen = False
+
+def wrap_text(text, font, max_width):
+    words = text.split(" ")
+    lines = []
+    current_line = ""
+    for word in words:
+        test_line = current_line + word + " "
+        if font.size(test_line)[0] <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line.strip())
+            current_line = word + " "
+    lines.append(current_line.strip())
+    return lines
+
+def draw_dialogue_box(name, image, text):
+    pygame.draw.rect(screen, white, dialogue_box_rect)
+    pygame.draw.rect(screen, brown, dialogue_box_rect, 5)
+    screen.blit(image, (dialogue_box_rect.x + 10, dialogue_box_rect.y + 20))
+
+    lines = wrap_text(text, font, dialogue_box_rect.width - 100)
+    for i, line in enumerate(lines):
+        txt_surface = font.render(line, True, black)
+        screen.blit(txt_surface, (dialogue_box_rect.x + 80, dialogue_box_rect.y + 20 + i * 30))
+
+def draw_centered_text(text, font, y_offset=0):
+    surface = font.render(text, True, white)
+    rect = surface.get_rect(center=(screen_width // 2, screen_height // 2 + y_offset))
+    screen.blit(surface, rect)
+
+# Game loop
+running = True
+while running:
+    clock.tick(60)
+    screen.fill(black)
+
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        elif event.type == KEYDOWN and event.key == K_SPACE:
+            if phase == "dialogue":
+                dialogue_index += 1
+                if dialogue_index >= len(dialogues):
+                    phase = "story"
+            elif phase == "story":
+                story_index += 1
+                if story_index >= len(story_lines):
+                    phase = "win"
+            elif phase == "win":
+                phase = "credits"
+            elif phase == "credits":
+                running = False
+
+    # Rendering based on phase
+    if phase == "dialogue" and dialogue_index < len(dialogues):
+        speaker, line = dialogues[dialogue_index]
+        image = character1_image if speaker == "BOPPI" else character2_image
+        draw_dialogue_box(speaker, image, line)
+
+    elif phase == "story" and story_index < len(story_lines):
+        draw_centered_text(story_lines[story_index], small_font)
+
+    elif phase == "win":
+        screen.blit(Flower, Flower.get_rect(center=(screen_width//2, screen_height//2)))
+        draw_centered_text("Boppi got his flower back!", font, 200)
+        screen.blit(Win, (980, 110))
+
+    elif phase == "credits":
+        pygame.draw.rect(screen, white, pygame.Rect(240, 160, 800, 400))
+        pygame.draw.rect(screen, brown, pygame.Rect(240, 160, 800, 400), 5)
+        for i, line in enumerate(credits):
+            text = font.render(line, True, black)
+            screen.blit(text, (260, 190 + i * 30))
+
+    pygame.display.flip()
+
+pygame.quit()
